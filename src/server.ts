@@ -1,14 +1,10 @@
-import express from 'express';
+import app from './app';
 
-const app = express();
 const port = 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+// Start server
+const server = app.listen(port, () => {
+  console.log(`Server is listening on port http://localhost:${port}`);
 });
 
-app.listen(port, () => {
-  console.log(`Server started at http://localhost:${port}`);
-});
-
-export default app;
+export default server;
