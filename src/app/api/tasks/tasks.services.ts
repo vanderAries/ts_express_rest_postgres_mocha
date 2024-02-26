@@ -5,7 +5,9 @@ const createTask = (taskInput: TaskRequest): TaskRequest => {
   return newTask;
 };
 
-const getAllTasks = (): void => {};
+const getAllTasks = (): void => {
+  console.log('yay');
+};
 
 const getTaskById = (taskId: string): void => {
   console.log(taskId);

@@ -7,3 +7,11 @@ export interface TaskRequest {
   category: Category
   state?: State
 }
+
+export interface TaskResponse {
+  id: number
+  name: string
+  description?: string
+  category: Category
+  state: State
+}
