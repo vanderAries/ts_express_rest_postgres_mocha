@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "nodemon dist/src/server.js",
     "start": "tsc && node dist/src/server.js",
-    "test": "mocha dist/tests"
+    "test": "tsc && mocha dist/tests",
+    "test:dev": "mocha --watch dist/tests"
   },
   "keywords": [],
   "author": "",
@@ -14,8 +17,7 @@
   "dependencies": {
     "@mikro-orm/core": "^6.1.5",
     "@mikro-orm/postgresql": "^6.1.5",
-    "express": "^4.18.2",
-    "express-validator": "^7.0.1"
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
@@ -33,8 +35,8 @@
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
     "mocha": "^10.3.0",
+    "nodemon": "^3.1.0",
     "sinon": "^17.0.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
