@@ -1,10 +1,15 @@
-import app from './app';
+import { type Server } from 'http';
+import App from './app';
 
-const port = 3000;
+const application = new App();
 
-// Start server
-const server = app.listen(port, () => {
-  console.log(`Server is listening on port http://localhost:${port}`);
-});
+async function startApplication(): Promise<Server> {
+  await application.connect();
+  application.init();
+  application.startServer();
+  return application.server;
+}
+
+const server = startApplication();
 
 export default server;

@@ -9,7 +9,9 @@
     "dev": "nodemon dist/src/server.js",
     "start": "tsc && node dist/src/server.js",
     "test": "tsc && mocha dist/tests",
-    "test:dev": "mocha --watch dist/tests"
+    "test:unit": "mocha dist/tests/unit",
+    "test:functional": "mocha dist/tests/functional",
+    "test:integration": "mocha dist/tests/integration"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +19,9 @@
   "dependencies": {
     "@mikro-orm/core": "^6.1.5",
     "@mikro-orm/postgresql": "^6.1.5",
-    "express": "^4.18.2"
+    "ajv": "^8.12.0",
+    "express": "^4.18.2",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.12",
@@ -25,6 +29,7 @@
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.20",
     "@types/sinon": "^17.0.3",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "chai": "^4.0.0",
     "chai-http": "^4.4.0",

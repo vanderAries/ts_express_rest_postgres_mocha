@@ -1,27 +1,51 @@
-import { MikroORM } from '@mikro-orm/postgresql';
 import express, { type Application } from 'express';
+import { type Server } from 'http';
+import { MikroORM, type Connection, type IDatabaseDriver } from '@mikro-orm/core';
+import ormConfig from './mikro-orm.config';
 import tasks from './api/tasks/tasks.routes';
 
-export const init = (async () => {
-  const orm = await MikroORM.init({
-    entities: ['./dist/src/app/**/*.entity.js'],
-    entitiesTs: ['./src/app/**/*.entity.ts'],
-    port: 8000,
-    dbName: 'postgres',
-    password: 'password',
-  });
-  console.log(orm.em);
-})();
+export default class App {
+  public host!: Application;
 
-// Boot express
-const app: Application = express();
+  public orm!: MikroORM<IDatabaseDriver<Connection>>;
 
-app.use(express.json());
+  public server!: Server;
 
-app.get('/', (_, res) => {
-  res.send('Hello World!');
-});
+  public connect = async (): Promise<void> => {
+    try {
+      this.orm = await MikroORM.init(ormConfig);
+    } catch (error) {
+      console.error('📌 Could not connect to the database', error);
+      throw error;
+    }
+  };
 
-app.use('/tasks', tasks);
+  public init = (): void => {
+    try {
+      this.host = express();
 
-export default app;
+      this.host.use(express.json());
+
+      this.host.get('/', (_, res) => {
+        res.sendStatus(200);
+      });
+
+      this.host.use('/tasks', tasks);
+    } catch (error) {
+      console.error('📌 Could not init Express', error);
+      throw error;
+    }
+  };
+
+  public startServer = (): void => {
+    try {
+      const port = process.env.PORT ?? 3000;
+      this.server = this.host.listen(port, () => {
+        console.log(`Server is running on http://localhost:${port} 🚀`);
+      });
+    } catch (error) {
+      console.error('📌 Could not start server', error);
+      throw error;
+    }
+  };
+}
