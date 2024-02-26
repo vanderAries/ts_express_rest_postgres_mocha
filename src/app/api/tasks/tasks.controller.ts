@@ -2,7 +2,10 @@ import { type Request, type Response } from 'express';
 import { type TaskRequest } from './tasks.models';
 import taskService from './tasks.services';
 
-const createTask = (req: Request, res: Response): Response => {
+const createTask = (req: any, res: Response): Response => {
+  if (req.validationError) {
+    return res.status(400).json(req.validationError);
+  }
   const newTask = taskService.createTask(req.body as TaskRequest);
   return res.status(201).json(newTask);
 };

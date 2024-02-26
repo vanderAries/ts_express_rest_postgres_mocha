@@ -1,7 +1,5 @@
-import Ajv, { type JSONSchemaType } from 'ajv';
+import { type JSONSchemaType } from 'ajv';
 import { type TaskRequest, type TaskResponse } from './tasks.models';
-
-const ajv = new Ajv();
 
 export const taskInputSchema: JSONSchemaType<TaskRequest> = {
   type: 'object',
@@ -31,17 +29,3 @@ export const taskResponseSchema: JSONSchemaType<TaskResponse> = {
   required: ['id', 'name', 'category', 'state'],
   additionalProperties: false,
 };
-
-const validate = ajv.compile(taskInputSchema);
-
-const data = {
-  foo: 1,
-  bar: 'abc',
-};
-
-if (validate(data)) {
-  // data is MyData here
-  console.log(data.foo);
-} else {
-  console.log(validate.errors);
-}
