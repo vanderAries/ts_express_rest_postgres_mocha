@@ -1,17 +1,24 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
-import { type Server } from 'http';
-import server from '../../src/server';
+import App from '../../src/app/app';
 
 chai.use(chaiHttp);
-
-let serverInstance: Server;
-before(async () => {
-  serverInstance = await server;
-});
+const appUrl = 'http://localhost:3000';
+const application = new App();
 
 describe('Tasks API', () => {
+  before(async () => {
+    await application.start().catch((error) => {
+      console.error('📌 Could not start the application', error);
+    });
+  });
+
+  after(async () => {
+    await application.stop().catch((error) => {
+      console.error('📌 Could not stop the application', error);
+    });
+  });
   describe('Create new Task | POST /tasks', () => {
     it('should return new task', async () => {
       const newTask = {
@@ -20,7 +27,7 @@ describe('Tasks API', () => {
         category: 'work',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(201);
@@ -43,7 +50,7 @@ describe('Tasks API', () => {
         category: 'work',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(201);
@@ -60,7 +67,7 @@ describe('Tasks API', () => {
         state: 'finished',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(201);
@@ -76,7 +83,7 @@ describe('Tasks API', () => {
         category: 'work',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(400);
@@ -90,7 +97,7 @@ describe('Tasks API', () => {
         description: 'Test description',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(400);
@@ -102,7 +109,7 @@ describe('Tasks API', () => {
   describe('Get all Tasks | GET /tasks', () => {
     it('should return all tasks', async () => {
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .get('/tasks');
       expect(res).to.have.status(200);
       expect(res.body).to.be.an('array');
@@ -112,7 +119,7 @@ describe('Tasks API', () => {
   describe('Get Task by ID | GET /tasks/:id', () => {
     it('should return task by id', async () => {
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .get('/tasks/1');
       expect(res).to.have.status(200);
       expect(res.body).to.have.keys(
@@ -126,7 +133,7 @@ describe('Tasks API', () => {
 
     it('should return error when task id is invalid', async () => {
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .get('/tasks/999');
       expect(res).to.have.status(404);
       expect(res.body).to.have.keys('title', 'detail');
@@ -143,7 +150,7 @@ describe('Tasks API', () => {
         state: 'finished',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .put('/tasks/1')
         .send(updatedTask);
       expect(res).to.have.status(200);
@@ -168,7 +175,7 @@ describe('Tasks API', () => {
         state: 'finished',
       };
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .put('/tasks/999')
         .send(updatedTask);
       expect(res).to.have.status(404);
@@ -180,7 +187,7 @@ describe('Tasks API', () => {
   describe('Delete Task by ID | DELETE /tasks/:id', () => {
     it('should return deleted task', async () => {
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .delete('/tasks/1');
       expect(res).to.have.status(200);
       expect(res.body).to.have.keys(
@@ -194,7 +201,7 @@ describe('Tasks API', () => {
 
     it('should return error when task id is invalid', async () => {
       const res = await chai
-        .request(serverInstance)
+        .request(appUrl)
         .delete('/tasks/999');
       expect(res).to.have.status(404);
       expect(res.body).to.have.keys('title', 'detail');

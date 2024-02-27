@@ -1,15 +1,6 @@
-import { type Server } from 'http';
-import App from './app';
+import App from './app/app';
 
 const application = new App();
-
-async function startApplication(): Promise<Server> {
-  await application.connect();
-  application.init();
-  application.startServer();
-  return application.server;
-}
-
-const server = startApplication();
-
-export default server;
+application.start().catch((error) => {
+  console.error('📌 Could not start the application', error);
+});
