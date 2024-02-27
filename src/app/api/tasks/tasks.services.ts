@@ -1,47 +1,56 @@
 import { type EntityManager } from '@mikro-orm/core';
 import {
-  type TaskRequest, type TaskResponse, type TaskCategory, type TaskState,
+  entityToTaskResponse,
+  type TaskRequestBody,
+  type TaskResponseBody,
 } from './tasks.models';
 import Task from './tasks.entity';
 
-const transformToTaskResponse = (task: Task): TaskResponse => ({
-  id: task.id,
-  name: task.name,
-  description: task.description,
-  category: task.category as TaskCategory,
-  state: task.state as TaskState,
-});
-
-const createTask = async (em: EntityManager, taskInput: TaskRequest): Promise<Task> => {
-  console.log('Im here');
-  console.log('EntityManager', em);
+const createTask = async (em: EntityManager, taskInput: TaskRequestBody):
+Promise<TaskResponseBody> => {
   const newTask = new Task();
-  console.log('Im after Task');
   newTask.name = taskInput.name;
-  newTask.description = taskInput.description ?? '';
+  newTask.description = taskInput.description;
   newTask.category = taskInput.category;
-  newTask.state = taskInput.state ?? 'todo' satisfies TaskState;
-  console.log('Here is newTask: ', newTask);
+  newTask.state = taskInput.state;
   await em.persistAndFlush(newTask);
-  return newTask;
-  // return transformToTaskResponse(newTask);
+  return entityToTaskResponse(newTask);
 };
 
-const getAllTasks = (): void => {
-  console.log('yay');
+const getAllTasks = async (em: EntityManager):
+Promise<TaskResponseBody[]> => {
+  const tasks = await em.findAll(Task);
+  return tasks.map((task) => entityToTaskResponse(task));
 };
 
-const getTaskById = (taskId: string): void => {
-  console.log(taskId);
+const getTaskById = async (em: EntityManager, taskId: string):
+Promise<TaskResponseBody | null> => {
+  const task = await em.findOne(Task, taskId);
+  return (task === null) ? null : entityToTaskResponse(task);
 };
 
-const updateTask = (taskId: string, taskInput: TaskRequest): TaskRequest => {
-  const updatedTask = taskInput;
-  return updatedTask;
+const updateTask = async (em: EntityManager, taskId: string, taskInput: TaskRequestBody):
+Promise<TaskResponseBody | null> => {
+  const updatedTask = await em.findOne(Task, taskId);
+  if (updatedTask === null) {
+    return null;
+  }
+  updatedTask.name = taskInput.name;
+  updatedTask.description = taskInput.description;
+  updatedTask.category = taskInput.category;
+  updatedTask.state = taskInput.state;
+  await em.persistAndFlush(updatedTask);
+  return entityToTaskResponse(updatedTask);
 };
 
-const deleteTask = (taskId: string): void => {
-  console.log(taskId);
+const deleteTask = async (em: EntityManager, taskId: string):
+Promise<TaskResponseBody | null> => {
+  const task = await em.findOne(Task, taskId);
+  if (task === null) {
+    return null;
+  }
+  await em.remove(task).flush();
+  return entityToTaskResponse(task);
 };
 
 export default {

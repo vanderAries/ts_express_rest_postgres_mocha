@@ -1,5 +1,11 @@
-import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Entity,
+  PrimaryKey,
+  Property,
+  type Opt,
+} from '@mikro-orm/core';
 import { v4 as uuidv4 } from 'uuid';
+import { type TaskState } from './tasks.models';
 
 @Entity()
 export default class Task {
@@ -9,14 +15,14 @@ export default class Task {
   @Property()
     name!: string;
 
-  @Property({ type: 'text' })
-    description = '';
+  @Property({ nullable: true })
+    description?: string;
 
   @Property()
     category!: string;
 
-  @Property()
-    state!: string;
+  @Property({ default: 'todo' })
+    state?: string & Opt = 'todo' satisfies TaskState;
 
   @Property()
     createdAt = new Date();

@@ -36,7 +36,7 @@ describe('Tasks API', () => {
         'name',
         'description',
         'category',
-        'status',
+        'state',
       );
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.description).to.equal(newTask.description);
@@ -54,7 +54,7 @@ describe('Tasks API', () => {
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(201);
-      expect(res.body).to.have.keys('id', 'name', 'category', 'status');
+      expect(res.body).to.have.keys('id', 'name', 'category', 'state');
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.category).to.equal(newTask.category);
       expect(res.body.state).to.equal('todo');
@@ -71,7 +71,7 @@ describe('Tasks API', () => {
         .post('/tasks')
         .send(newTask);
       expect(res).to.have.status(201);
-      expect(res.body).to.have.keys('id', 'name', 'category', 'status');
+      expect(res.body).to.have.keys('id', 'name', 'category', 'state');
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.category).to.equal(newTask.category);
       expect(res.body.state).to.equal('finished');
@@ -88,7 +88,7 @@ describe('Tasks API', () => {
         .send(newTask);
       expect(res).to.have.status(400);
       expect(res.body).to.have.keys('title', 'detail', 'errors');
-      expect(res.body.error).to.equal('Validation Error');
+      expect(res.body.title).to.equal('Validation Error');
     });
 
     it('should return error when category is invalid', async () => {
@@ -102,7 +102,7 @@ describe('Tasks API', () => {
         .send(newTask);
       expect(res).to.have.status(400);
       expect(res.body).to.have.keys('title', 'detail', 'errors');
-      expect(res.body.error).to.equal('Validation Error');
+      expect(res.body.title).to.equal('Validation Error');
     });
   });
 
@@ -159,7 +159,7 @@ describe('Tasks API', () => {
         'name',
         'description',
         'category',
-        'status',
+        'state',
       );
       expect(res.body.name).to.equal(updatedTask.name);
       expect(res.body.description).to.equal(updatedTask.description);
@@ -195,7 +195,7 @@ describe('Tasks API', () => {
         'name',
         'description',
         'category',
-        'status',
+        'state',
       );
     });
 

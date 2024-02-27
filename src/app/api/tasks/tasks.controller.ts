@@ -2,12 +2,11 @@ import { RequestContext } from '@mikro-orm/core';
 import { type Request, type Response } from 'express';
 import Ajv, { type DefinedError } from 'ajv';
 import { type ErrorResponse } from '../../shared/models/errors';
-import { type TaskRequest } from './tasks.models';
-import { taskInputSchema } from './tasks.schemas';
+import taskSchema from './tasks.schemas';
 import taskService from './tasks.services';
 
 const ajv = new Ajv();
-const validate = ajv.compile(taskInputSchema);
+const validate = ajv.compile(taskSchema);
 
 const createTask = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -43,7 +42,11 @@ const createTask = async (req: Request, res: Response): Promise<Response> => {
 
 const getAllTasks = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const tasks = await taskService.getAllTasks();
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+    const tasks = await taskService.getAllTasks(em);
     return res.status(200).json(tasks);
   } catch (error) {
     console.log('Error in taskController');
@@ -59,8 +62,13 @@ const getAllTasks = async (req: Request, res: Response): Promise<Response> => {
 const getTaskById = async (req: Request, res: Response): Promise<Response> => {
   try {
     const taskId = req.params.id;
-    const task = await taskService.getTaskById(taskId);
-    if (task === undefined) {
+
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+    const task = await taskService.getTaskById(em, taskId);
+    if (task === null) {
       const errorRes: ErrorResponse = {
         title: 'Not Found',
         detail: `Task with ID: '${taskId}' was not found.`,
@@ -94,11 +102,14 @@ const updateTask = async (req: Request, res: Response): Promise<Response> => {
     }
 
     const taskId = req.params.id;
-    const taskInput = body;
 
-    const updatedTask = await taskService.updateTask(taskId, taskInput);
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+    const updatedTask = await taskService.updateTask(em, taskId, body);
 
-    if (updatedTask === undefined) {
+    if (updatedTask === null) {
       const errorRes: ErrorResponse = {
         title: 'Not Found',
         detail: `Task with ID: '${taskId}' was not found.`,
@@ -122,9 +133,13 @@ const deleteTask = async (req: Request, res: Response): Promise<Response> => {
   try {
     const taskId = req.params.id;
 
-    const deletedTask = await taskService.deleteTask(taskId);
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+    const deletedTask = await taskService.deleteTask(em, taskId);
 
-    if (deletedTask === undefined) {
+    if (deletedTask === null) {
       const errorRes: ErrorResponse = {
         title: 'Not Found',
         detail: `Task with ID: '${taskId}' was not found.`,
