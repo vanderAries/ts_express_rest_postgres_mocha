@@ -1,17 +1,17 @@
-type Category = 'work' | 'home';
-type State = 'todo' | 'active' | 'finished';
+export type TaskCategory = 'work' | 'home';
+export type TaskState = 'todo' | 'active' | 'finished';
 
 export interface TaskRequest {
   name: string
   description?: string
-  category: Category
-  state?: State
+  category: TaskCategory
+  state?: TaskState
 }
 
 export interface TaskResponse {
-  id: number
+  id: string
   name: string
   description?: string
-  category: Category
-  state: State
+  category: TaskCategory
+  state: TaskState
 }

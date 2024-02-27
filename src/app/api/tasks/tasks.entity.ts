@@ -1,10 +1,10 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export default class Task {
   @PrimaryKey({ type: 'uuid' })
-    id = uuid.v4();
+    id = uuidv4();
 
   @Property()
     name!: string;

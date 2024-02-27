@@ -20,7 +20,7 @@ export const taskInputSchema: JSONSchemaType<TaskRequest> = {
 export const taskResponseSchema: JSONSchemaType<TaskResponse> = {
   type: 'object',
   properties: {
-    id: { type: 'number' },
+    id: { type: 'string' },
     name: { type: 'string' },
     description: { type: 'string', nullable: true },
     category: { type: 'string', enum: ['work', 'home'] },
