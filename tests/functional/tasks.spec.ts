@@ -7,7 +7,15 @@ chai.use(chaiHttp);
 const appUrl = 'http://localhost:3000';
 const application = new App();
 
+async function cleanDatabase(ids: string[]): Promise<void> {
+  await Promise.all(ids.map(async (id) => {
+    await chai.request(appUrl)
+      .delete(`/tasks/${id}`);
+  }));
+}
+
 describe('Tasks API', () => {
+  const taskIds: string[] = [];
   before(async () => {
     await application.start().catch((error) => {
       console.error('📌 Could not start the application', error);
@@ -15,6 +23,7 @@ describe('Tasks API', () => {
   });
 
   after(async () => {
+    await cleanDatabase(taskIds);
     await application.stop().catch((error) => {
       console.error('📌 Could not stop the application', error);
     });
@@ -30,6 +39,7 @@ describe('Tasks API', () => {
         .request(appUrl)
         .post('/tasks')
         .send(newTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(201);
       expect(res.body).to.have.keys(
         'id',
@@ -38,10 +48,12 @@ describe('Tasks API', () => {
         'category',
         'state',
       );
+      expect(res.body.id).to.a('string').and.not.empty;
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.description).to.equal(newTask.description);
       expect(res.body.category).to.equal(newTask.category);
       expect(res.body.state).to.equal('todo');
+      taskIds.push(res.body.id as string);
     });
 
     it('should return new task without description', async () => {
@@ -53,11 +65,13 @@ describe('Tasks API', () => {
         .request(appUrl)
         .post('/tasks')
         .send(newTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(201);
       expect(res.body).to.have.keys('id', 'name', 'category', 'state');
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.category).to.equal(newTask.category);
       expect(res.body.state).to.equal('todo');
+      taskIds.push(res.body.id as string);
     });
 
     it('should return new task with non default state', async () => {
@@ -70,11 +84,13 @@ describe('Tasks API', () => {
         .request(appUrl)
         .post('/tasks')
         .send(newTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(201);
       expect(res.body).to.have.keys('id', 'name', 'category', 'state');
       expect(res.body.name).to.equal(newTask.name);
       expect(res.body.category).to.equal(newTask.category);
       expect(res.body.state).to.equal('finished');
+      taskIds.push(res.body.id as string);
     });
 
     it('should return error when name is missing', async () => {
@@ -86,6 +102,7 @@ describe('Tasks API', () => {
         .request(appUrl)
         .post('/tasks')
         .send(newTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(400);
       expect(res.body).to.have.keys('title', 'detail', 'errors');
       expect(res.body.title).to.equal('Validation Error');
@@ -100,6 +117,7 @@ describe('Tasks API', () => {
         .request(appUrl)
         .post('/tasks')
         .send(newTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(400);
       expect(res.body).to.have.keys('title', 'detail', 'errors');
       expect(res.body.title).to.equal('Validation Error');
@@ -111,6 +129,7 @@ describe('Tasks API', () => {
       const res = await chai
         .request(appUrl)
         .get('/tasks');
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(200);
       expect(res.body).to.be.an('array');
     });
@@ -120,14 +139,15 @@ describe('Tasks API', () => {
     it('should return task by id', async () => {
       const res = await chai
         .request(appUrl)
-        .get('/tasks/1');
+        .get(`/tasks/${taskIds[0]}`);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(200);
       expect(res.body).to.have.keys(
         'id',
         'name',
         'description',
         'category',
-        'status',
+        'state',
       );
     });
 
@@ -135,9 +155,20 @@ describe('Tasks API', () => {
       const res = await chai
         .request(appUrl)
         .get('/tasks/999');
+      console.log('Response Body: ', res.body);
+      expect(res).to.have.status(400);
+      expect(res.body).to.have.keys('title', 'detail');
+      expect(res.body.title).to.equal('Validation Error');
+    });
+
+    it('should return error when task with id is not found', async () => {
+      const res = await chai
+        .request(appUrl)
+        .get('/tasks/e6eb0184-7935-46ee-bcfe-d3329e6a6d68');
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(404);
       expect(res.body).to.have.keys('title', 'detail');
-      expect(res.body.error).to.equal('Not Found');
+      expect(res.body.title).to.equal('Not Found');
     });
   });
 
@@ -151,8 +182,9 @@ describe('Tasks API', () => {
       };
       const res = await chai
         .request(appUrl)
-        .put('/tasks/1')
+        .put(`/tasks/${taskIds[0]}`)
         .send(updatedTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(200);
       expect(res.body).to.have.keys(
         'id',
@@ -178,34 +210,58 @@ describe('Tasks API', () => {
         .request(appUrl)
         .put('/tasks/999')
         .send(updatedTask);
+      console.log('Response Body: ', res.body);
+      expect(res).to.have.status(400);
+      expect(res.body).to.have.keys('title', 'detail');
+      expect(res.body.title).to.equal('Validation Error');
+    });
+
+    it('should return error when task with id is not found', async () => {
+      const updatedTask = {
+        name: 'Work task test updated',
+        description: 'Test description updated',
+        category: 'work',
+        state: 'finished',
+      };
+      const res = await chai
+        .request(appUrl)
+        .put('/tasks/e6eb0184-7935-46ee-bcfe-d3329e6a6d68')
+        .send(updatedTask);
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(404);
       expect(res.body).to.have.keys('title', 'detail');
-      expect(res.body.error).to.equal('Not Found');
+      expect(res.body.title).to.equal('Not Found');
     });
   });
 
   describe('Delete Task by ID | DELETE /tasks/:id', () => {
-    it('should return deleted task', async () => {
+    it('should return 204', async () => {
       const res = await chai
         .request(appUrl)
-        .delete('/tasks/1');
-      expect(res).to.have.status(200);
-      expect(res.body).to.have.keys(
-        'id',
-        'name',
-        'description',
-        'category',
-        'state',
-      );
+        .delete(`/tasks/${taskIds[0]}`);
+      console.log('Response Body: ', res.body);
+      expect(res).to.have.status(204);
+      expect(res.body).to.be.empty;
     });
 
     it('should return error when task id is invalid', async () => {
       const res = await chai
         .request(appUrl)
         .delete('/tasks/999');
+      console.log('Response Body: ', res.body);
+      expect(res).to.have.status(400);
+      expect(res.body).to.have.keys('title', 'detail');
+      expect(res.body.title).to.equal('Validation Error');
+    });
+
+    it('should return error when task with id is not found', async () => {
+      const res = await chai
+        .request(appUrl)
+        .delete('/tasks/e6eb0184-7935-46ee-bcfe-d3329e6a6d68');
+      console.log('Response Body: ', res.body);
       expect(res).to.have.status(404);
       expect(res.body).to.have.keys('title', 'detail');
-      expect(res.body.error).to.equal('Not Found');
+      expect(res.body.title).to.equal('Not Found');
     });
   });
 });

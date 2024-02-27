@@ -1,5 +1,6 @@
 import { RequestContext } from '@mikro-orm/core';
 import { type Request, type Response } from 'express';
+import { validate as uuidValidate } from 'uuid';
 import Ajv, { type DefinedError } from 'ajv';
 import { type ErrorResponse } from '../../shared/models/errors';
 import taskSchema from './tasks.schemas';
@@ -10,6 +11,11 @@ const validate = ajv.compile(taskSchema);
 
 const createTask = async (req: Request, res: Response): Promise<Response> => {
   try {
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+
     const { body } = req;
     if (!validate(body)) {
       console.log('Validation Errors: ', validate.errors);
@@ -20,11 +26,6 @@ const createTask = async (req: Request, res: Response): Promise<Response> => {
         errors: validate.errors as DefinedError[],
       };
       return res.status(400).json(errorRes);
-    }
-
-    const em = RequestContext.getEntityManager();
-    if (em === undefined) {
-      throw new Error('EntityManager is undefined');
     }
 
     const newTask = await taskService.createTask(em, body);
@@ -46,6 +47,7 @@ const getAllTasks = async (req: Request, res: Response): Promise<Response> => {
     if (em === undefined) {
       throw new Error('EntityManager is undefined');
     }
+
     const tasks = await taskService.getAllTasks(em);
     return res.status(200).json(tasks);
   } catch (error) {
@@ -61,12 +63,20 @@ const getAllTasks = async (req: Request, res: Response): Promise<Response> => {
 
 const getTaskById = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const taskId = req.params.id;
-
     const em = RequestContext.getEntityManager();
     if (em === undefined) {
       throw new Error('EntityManager is undefined');
     }
+
+    const taskId = req.params.id;
+    if (!uuidValidate(taskId)) {
+      const errorRes: ErrorResponse = {
+        title: 'Validation Error',
+        detail: `Provided task ID: '${taskId}' is invalid.`,
+      };
+      return res.status(400).json(errorRes);
+    }
+
     const task = await taskService.getTaskById(em, taskId);
     if (task === null) {
       const errorRes: ErrorResponse = {
@@ -89,6 +99,20 @@ const getTaskById = async (req: Request, res: Response): Promise<Response> => {
 
 const updateTask = async (req: Request, res: Response): Promise<Response> => {
   try {
+    const em = RequestContext.getEntityManager();
+    if (em === undefined) {
+      throw new Error('EntityManager is undefined');
+    }
+
+    const taskId = req.params.id;
+    if (!uuidValidate(taskId)) {
+      const errorRes: ErrorResponse = {
+        title: 'Validation Error',
+        detail: `Provided task ID: '${taskId}' is invalid.`,
+      };
+      return res.status(400).json(errorRes);
+    }
+
     const { body } = req;
     if (!validate(body)) {
       console.log('Validation Errors: ', validate.errors);
@@ -101,12 +125,6 @@ const updateTask = async (req: Request, res: Response): Promise<Response> => {
       return res.status(400).json(errorRes);
     }
 
-    const taskId = req.params.id;
-
-    const em = RequestContext.getEntityManager();
-    if (em === undefined) {
-      throw new Error('EntityManager is undefined');
-    }
     const updatedTask = await taskService.updateTask(em, taskId, body);
 
     if (updatedTask === null) {
@@ -131,12 +149,20 @@ const updateTask = async (req: Request, res: Response): Promise<Response> => {
 
 const deleteTask = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const taskId = req.params.id;
-
     const em = RequestContext.getEntityManager();
     if (em === undefined) {
       throw new Error('EntityManager is undefined');
     }
+
+    const taskId = req.params.id;
+    if (!uuidValidate(taskId)) {
+      const errorRes: ErrorResponse = {
+        title: 'Validation Error',
+        detail: `Provided task ID: '${taskId}' is invalid.`,
+      };
+      return res.status(400).json(errorRes);
+    }
+
     const deletedTask = await taskService.deleteTask(em, taskId);
 
     if (deletedTask === null) {

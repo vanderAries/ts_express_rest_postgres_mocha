@@ -10,7 +10,7 @@
     "start": "tsc && node dist/src/server.js",
     "test": "tsc && mocha dist/tests",
     "test:unit": "mocha dist/tests/unit",
-    "test:functional": "mocha dist/tests/functional",
+    "test:functional": "mocha --require mocha-suppress-logs dist/tests/functional",
     "test:integration": "mocha dist/tests/integration"
   },
   "keywords": [],
@@ -40,6 +40,7 @@
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
     "mocha": "^10.3.0",
+    "mocha-suppress-logs": "^0.5.1",
     "nodemon": "^3.1.0",
     "sinon": "^17.0.1",
     "typescript": "^5.3.3"
